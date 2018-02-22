@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Pixel Art Maker!</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Monoton">
+    <link rel="stylesheet" href="style/styles.css">
+	<script src="script/jquery-3.3.1.min.js"></script>
+	<!-- Refrence URL https://html2canvas.hertzen.com/ -->
+	<script src="script/html2canvas.min.js"></script>
+	
+	<script>
+	//Start processing only once document has been loaded
+	$(document).ready(function(){
+		//Set default color of the grid to be blue
+		$("#colorPicker").val("#2c3af5");
+	
+		//Code to be called on document ready
+		$("#sizePicker").on("submit",function(evt){
+			//Call create grid
+			makeGrid($("#inputHeight").val(),$("#inputWeight").val());
+			evt.preventDefault();
+		})
+		
+		//Monitor color change event to reflect the color across grid
+		$("#colorPicker").change(function(){
+			paintCanvas($("#colorPicker").val());
+		})
+		
+		//Monitor mouse clicks to paint the cells
+		$("#pixelCanvas").on("click","td",function(evt){
+			var col = $("#colorPicker").val();
+			$(evt.target).css("background-color",$(evt.target).css("background-color")=="rgba(0, 0, 0, 0)"?col:"rgba(0, 0, 0, 0)");			
+		})
+		
+		//Generate ico file
+		$("#btnGenerate").click(function(){
+			$("#divPreview").empty().append("<table id='tblPreview'></table>");
+			$("#tblPreview").html($("#pixelCanvas").html());
+			$("#tblPreview").css("border","none");
+			$("#tblPreview tr").css("border","none");
+			$("#tblPreview tr td").css("border","none");
+			$("#tblPreview tr td").css("margin","0px");
+			html2canvas(document.querySelector("#tblPreview")).then(canvas => {
+				var temp_canvas = document.createElement("canvas");
+                temp_canvas.setAttribute('width',80);
+                temp_canvas.setAttribute('height',80);
+                var ctx = temp_canvas.getContext('2d');
+                ctx.drawImage(canvas,0,0,canvas.width, canvas.height,0,0,80,80);
+                var dataURL = temp_canvas.toDataURL();
+                var img = $(document.createElement('img'));
+                img.attr('src', dataURL);
+				$("#divPreview").empty().append(temp_canvas);
+			});
+		})
+		
+		$("#btnDownload").click(function(){
+			var dataURL = $("canvas")[0].toDataURL('image/png');
+			/* Change MIME type to trick the browser to downlaod the file instead of displaying it */
+			dataURL = dataURL.replace(/^data:image\/[^;]*/, 'data:application/octet-stream');
+			/* In addition to <a>'s "download" attribute, you can define HTTP-style headers */
+			dataURL = dataURL.replace(/^data:application\/octet-stream/, 'data:application/octet-stream;headers=Content-Disposition%3A%20attachment%3B%20filename=Canvas.png');
+			var tempLink = document.createElement('a');
+			tempLink.href = dataURL;
+			tempLink.download = 'Icon.jpg';
+			document.body.appendChild(tempLink);
+			tempLink.click();
+			tempLink.remove();
+		})
+	})
+
+	</script>
+</head>
+<body>
+    <h1>Lab: Pixel Art Maker</h1>
+
+    <h2>Choose Grid Size</h2>
+    <form id="sizePicker">
+        Grid Height:
+        <input type="number" id="inputHeight" name="height" min="1" value="1">
+        Grid Width:
+        <input type="number" id="inputWeight" name="width" min="1" value="1">
+        <input type="submit">
+    </form>
+
+    <h2>Pick A Color</h2>
+    <input type="color" id="colorPicker">
+
+    <h2>Design Canvas</h2>
+	<button id="btnGenerate">Generate Preview</button>
+	<button id="btnDownload">Download</button>
+	<hr/>
+    <table id="pixelCanvas"></table>
+    <script src="script/designs.js"></script>
+	<div id="divPreview"></div>
+</body>
+</html>
